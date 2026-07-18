@@ -1,8 +1,98 @@
 This is a forked version of Andrew's OAD Exporter to support latest HEAD of OpenIV, without this
 export to latest OpenIV version will not work. 
 
-
 Currently only tested on OpenIV Animation Player and In Game Char 
 
 TODO:
 Test (Cutscene Char, Facial Animation, Object, UV, Camera animation) and in game testing.
+
+Also its important to make sure the Skeleton hierarchy is somewhat like this:
+
+Char 
+    head_000_r_0 
+    head_000_r_0 
+    Char_Pelvis 
+        Char_L_Thigh 
+            Char_L_Calf 
+                Char_L_Foot 
+                    Char_L_Toe0 
+                L_Calf_Roll 
+        Char_R_Thigh 
+            Char_R_Calf 
+                Char_R_Foot 
+                    Char_R_Toe0 
+                R_Calf_Roll 
+    lowr_000_u_0 
+    lowr_000_u_0 
+    Char_Spine 
+        Char_Spine1 
+            Char_Spine2 
+                Char_Spine3 
+                    Char_L_Clavicle 
+                        Char_L_UpperArm 
+                            Char_L_Forearm 
+                                Char_L_Hand 
+                                    Char_L_Finger0 
+                                        Char_L_Finger01 
+                                            Char_L_Finger02 
+                                        Extra_01 
+                                        Extra_02 
+                                        Extra_03 
+                                    Char_L_Finger1 
+                                        Char_L_Finger11 
+                                            Char_L_Finger12 
+                                    Char_L_Finger2 
+                                        Char_L_Finger21 
+                                            Char_L_Finger22 
+                                    Char_L_Finger3 
+                                        Char_L_Finger31 
+                                            Char_L_Finger32 
+                            Char_L_ForeTwist 
+                        L_UpperArmRoll 
+                        L_ArmRoll 
+                    Char_R_Clavicle 
+                        Char_R_UpperArm 
+                            Char_R_Forearm 
+                                Char_R_Hand 
+                                    Char_R_Finger0 
+                                        Char_R_Finger01 
+                                            Char_R_Finger02 
+                                    Char_R_Finger1 
+                                        Char_R_Finger11 
+                                            Char_R_Finger12 
+                                    Char_R_Finger2 
+                                        Char_R_Finger21 
+                                            Char_R_Finger22 
+                                    Char_R_Finger3 
+                                        Char_R_Finger31 
+                                            Char_R_Finger32 
+                            Char_R_ForeTwist 
+                        R_UpperArmRoll 
+                        R_ArmRoll 
+                    Char_Neck 
+                        Char_Head 
+                            FB_C_Brow 
+                            FB_C_Cheeks 
+                            FB_L_Brow 
+                            FB_L_Crn_Mouth 
+                            FB_L_Eyeball 
+                            FB_L_Eyelid 
+                            FB_R_Brow 
+                            FB_R_Crn_Mouth 
+                            FB_R_Eyeball 
+                            FB_R_Eyelid 
+                            PointFB_C_Jaw 
+                                FB_C_Jaw 
+                                    PointFB_R_LipLower 
+                                        FB_R_LipLower 
+                                    PointFB_L_LipLower 
+                                        FB_L_LipLower 
+                            PointFB_L_LipUpper 
+                                FB_L_LipUpper 
+                            PointFB_R_LipUpper 
+                                FB_R_LipUpper 
+                        Neck_Roll 
+    uppr_000_u_0 
+    uppr_000_u_0 
+
+This makes the exporting and checking weights during animation easier

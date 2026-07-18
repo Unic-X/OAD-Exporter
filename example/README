@@ -1,0 +1,14 @@
+This model can be used to apply original animations on for `example move_player.wad` contains `run` 
+which can be exported to `OAD` and individual `ONIM` (primary animation) files using `OpenIV` this can be imported via `OFIO`(https://www.dev-c.com/gtaiv/ofio). 
+
+To apply any existing animation on top of this model just do the following:
+
+1. Export the animation as described above.
+2. Open the model in `3ds Max` 
+3. Select the root of the skeleton `Char`
+4. Open the wrench(🔧) icon and select the OFIO >ONIM > IMPORT SINGLE
+5. Select the animation and do the customization to motion if any
+6. Use the `OAD-Exporter` script to export a new `OAD` file with corresponding `ONIMs`
+7. Import the `OAD` into `anim.img` using `OpenIV`
+
+All credits to the original author of this model : H1Vltg3
