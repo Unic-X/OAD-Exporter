@@ -1,0 +1,8 @@
+This is a forked version of Andrew's OAD Exporter to support latest HEAD of OpenIV, without this
+export to latest OpenIV version will not work. 
+
+
+Currently only tested on OpenIV Animation Player and In Game Char 
+
+TODO:
+Test (Cutscene Char, Facial Animation, Object, UV, Camera animation) and in game testing.
