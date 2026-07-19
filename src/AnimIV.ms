@@ -25,6 +25,48 @@ fn safeCreateFile basepath = (
 	)
 )
 
+fn ff v decimals:8 = (
+	local sign = if v < 0 then "-" else ""
+	local av = abs v
+	local scale = 1
+	for i = 1 to decimals do scale *= 10
+	local scaled = (av * scale + 0.5) as integer  -- round to nearest
+	local intPart = scaled / scale
+	local fracPart = mod scaled scale
+	local fracStr = fracPart as string
+	while fracStr.count < decimals do fracStr = "0" + fracStr
+	sign + (intPart as string) + "." + fracStr
+)
+
+fn fixQuatContinuity xs ys zs ws = (
+	for i = 2 to xs.count do (
+		local dot = xs[i]*xs[i-1] + ys[i]*ys[i-1] + zs[i]*zs[i-1] + ws[i]*ws[i-1]
+		if dot < 0 then (
+			xs[i] = -xs[i]
+			ys[i] = -ys[i]
+			zs[i] = -zs[i]
+			ws[i] = -ws[i]
+		)
+	)
+)
+
+fn writeChannelData valArr toStream = (
+	local first = valArr[1]
+	local allSame = true
+	for v in valArr do (
+		if (abs (v - first)) > 0.00001 then allSame = false
+	)
+	if allSame then (
+		format "\t\t\t\tchannel Static\n\t\t\t\t{\n\t\t\t\t\t%\n\t\t\t\t}\n" (ff first) to: toStream
+	) else (
+		format "\t\t\t\tchannel\n\t\t\t\t{\n" to: toStream
+		for v in valArr do (
+			format "\t\t\t\t\t%\n" (ff v) to: toStream
+		)
+		format "\t\t\t\t}\n" to: toStream
+	)
+)
+
 rollout AnimIV "Andrew's OAD Exporter"
 (
 	button Newbtn "Create OAD" width:120
@@ -315,7 +357,7 @@ on ExpMC pressed do (										--CHAR EXPORT
 		   
 		if (TypeCExp.state==1) then (   				--CUTSCENE CHARACTER
 				format "Version 8 2\n{\n\tFlags FLAG_0 FLAG_4 FLAG_5 FLAG_6 FLAG_7 FLAG_8\n" to: o
-		format "\tFrames %\n" ar to: o
+		format "\tFrames %\n" (ar+1) to: o
 		format "\tSequenceFrameLimit %\n" ar to: o
 		format "\tDuration %\n" ard to: o
 		format "\t_f10 2617588364\n" to: o
@@ -363,7 +405,7 @@ on ExpMC pressed do (										--CHAR EXPORT
 					else (
 					rx=at time i bonsnam2.rotation.x
 					)
-				format "\t\t\t\t\t%\n" rx to: o
+				format "\t\t\t\t\t%\n" (ff rx) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
@@ -375,7 +417,7 @@ on ExpMC pressed do (										--CHAR EXPORT
 					else (
 					ry=at time i bonsnam2.rotation.y
 					)
-				format "\t\t\t\t\t%\n" ry to: o
+				format "\t\t\t\t\t%\n" (ff ry) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
@@ -386,7 +428,7 @@ on ExpMC pressed do (										--CHAR EXPORT
 					) else (
 					rz=at time i bonsnam2.rotation.z
 					)
-				format "\t\t\t\t\t%\n" rz to: o
+				format "\t\t\t\t\t%\n" (ff rz) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
@@ -397,7 +439,7 @@ on ExpMC pressed do (										--CHAR EXPORT
 					) else (
 					rw=at time i bonsnam2.rotation.w
 					)
-				format "\t\t\t\t\t%\n" rw to: o
+				format "\t\t\t\t\t%\n" (ff rw) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t}\n\t\t}\n" to: o
 			bonii=findItem bonsar bonal
@@ -411,17 +453,17 @@ on ExpMC pressed do (										--CHAR EXPORT
 			format "\t\t\tFramesData MultiChannel\n\t\t\t{\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
 				rx=at time i bonsnam2.pos.x
-				format "\t\t\t\t\t%\n" rx to: o
+				format "\t\t\t\t\t%\n" (ff rx) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
 				ry=at time i bonsnam2.pos.y
-				format "\t\t\t\t\t%\n" ry to: o
+				format "\t\t\t\t\t%\n" (ff ry) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
 				rz=at time i bonsnam2.pos.z
-				format "\t\t\t\t\t%\n" rz to: o
+				format "\t\t\t\t\t%\n" (ff rz) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t}\n\t\t}\n" to: o
 			format "\t\tModelRotation Float4 0\n\t\t{\n" to: o
@@ -435,7 +477,7 @@ on ExpMC pressed do (										--CHAR EXPORT
 					else (
 					rx=at time i bonsnam2.rotation.x
 					)
-				format "\t\t\t\t\t%\n" rx to: o
+				format "\t\t\t\t\t%\n" (ff rx) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
@@ -447,7 +489,7 @@ on ExpMC pressed do (										--CHAR EXPORT
 					else (
 					ry=at time i bonsnam2.rotation.y
 					)
-				format "\t\t\t\t\t%\n" ry to: o
+				format "\t\t\t\t\t%\n" (ff ry) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
@@ -458,7 +500,7 @@ on ExpMC pressed do (										--CHAR EXPORT
 					) else (
 					rz=at time i bonsnam2.rotation.z
 					)
-				format "\t\t\t\t\t%\n" rz to: o
+				format "\t\t\t\t\t%\n" (ff rz) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
@@ -469,24 +511,24 @@ on ExpMC pressed do (										--CHAR EXPORT
 					) else (
 					rw=at time i bonsnam2.rotation.w
 					)
-				format "\t\t\t\t\t%\n" rw to: o
+				format "\t\t\t\t\t%\n" (ff rw) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t}\n" to: o
 			format "\t\t}\n\t}\n}\n" to: o
 		)	
 		else if (TypeCExp.state==2) then (			--IN-GAME CHAR
 				format "Version 8 2\n{\n\tFlags FLAG_0 FLAG_4 FLAG_5 FLAG_6 FLAG_7 FLAG_8\n" to: o
-		format "\tFrames %\n" ar to: o
+		format "\tFrames %\n" (ar+1) to: o
 		format "\tSequenceFrameLimit %\n" ar to: o
 		format "\tDuration %\n" ard to: o
 		format "\t_f10 2297553891\n" to: o
 		format "\tExtraFlags FLAG_1 FLAG_2\n" to: o
-		format "\tSequences %\n" ar to: o
+		format "\tSequences %\n" (ar+1) to: o
 		format "\tMaterialID -1\n\tAnimation\n\t{\n" to: o
 		RootOn=#()
 		bonsar2=#()
 		bonsar3=#()
-		bonsar=#(0, 417, 418, 419, 420, 421, 423, 424, 425, 1200, 1202, 1203, 1204, 1205, 1216, 1217, 1218, 1219, 1223, 1224, 1225, 1232, 13744, 13745, 13746, 13747, 13748, 13749, 13750, 13751, 17352, 13753, 13760, 13761, 13762, 13763, 13764, 13776, 13777, 13778, 13779, 13780, 13781, 13782, 13783, 13784, 13785, 13792, 13793, 13794, 13795, 13796, 13984, 13985)
+		bonsar=#(0, 417, 418, 419, 420, 421, 423, 424, 425, 1200, 1202, 1203, 1204, 1205, 1216, 1217, 1218, 1219, 1223, 1224, 1225, 1232, 13744, 13745, 13746, 13747, 13748, 13749, 13750, 13751, 13752, 13753, 13760, 13761, 13762, 13763, 13764, 13776, 13777, 13778, 13779, 13780, 13781, 13782, 13783, 13784, 13785, 13792, 13793, 13794, 13795, 13796, 13984, 13985)
 			for i=1 to RootO.count do (
 				insertItem RootO[i].name RootOn (RootOn.count+1)
 			)
@@ -506,61 +548,56 @@ on ExpMC pressed do (										--CHAR EXPORT
 			for i=1 to bonsar2.count do (
 				bonsar3[i]=(bonsar2[i] as string) as integer
 			)
-			format "\t\tBonePosition Float3 0\n\t\t{\n" to: o
-			format "\t\t\tFramesData SingleChannel Static\n\t\t\t{\n\t\t\t\t0.0 0.0 0.0\n\t\t\t}\n\t\t}\n" to: o --\t\t\t\tchannel\n\t\t\t\t{\n
+			local rootObj = RootO[1]
+			local bpxArr = #(), bpyArr = #(), bpzArr = #()
+			for i = 0 to ar do (
+				if rootObj.parent != undefined then (
+					in coordsys parent (
+						append bpxArr (at time i rootObj.pos.x)
+						append bpyArr (at time i rootObj.pos.y)
+						append bpzArr (at time i rootObj.pos.z)
+					)
+				) else (
+					append bpxArr (at time i rootObj.pos.x)
+					append bpyArr (at time i rootObj.pos.y)
+					append bpzArr (at time i rootObj.pos.z)
+				)
+			)
+			format "\t\tBonePosition Float3 0\n\t\t{\n\t\t\tFramesData MultiChannel\n\t\t\t{\n" to: o
+			writeChannelData bpxArr o
+			writeChannelData bpyArr o
+			writeChannelData bpzArr o
+			format "\t\t\t}\n\t\t}\n" to: o
 			for i=1 to bonsar2.count do (
 				bonsnam2=bonsar2[i]
 				if bonsar3[i]!=undefined then (
 					format "\t\tBoneRotation Float4 %\n\t\t{\n\t\t\tFramesData SingleChannel Static\n\t\t\t{\n\t\t\t\t0.00000000 0.00000000 0.99999990 0.00000000\n\t\t\t}\n\t\t}\n" (bonsar3[i] as string) to: o
 				)
 					else (
-					format "\t\tBoneRotation Float4 %\n\t\t{\n\t\t\tFramesData MultiChannel\n\t\t\t{\n\t\t\t\tchannel\n\t\t\t\t{\n" (bonsar[i] as string) to: o
-			for i=0 to ar do (
+					format "\t\tBoneRotation Float4 %\n\t\t{\n\t\t\tFramesData MultiChannel\n\t\t\t{\n" (bonsar[i] as string) to: o
+			local rxArr=#(), ryArr=#(), rzArr=#(), rwArr=#()
+			for j=0 to ar do (
 				if bonsnam2.parent!=undefined then (
 					in coordsys parent (
-						rx=at time i bonsnam2.rotation.x
+						append rxArr (at time j bonsnam2.rotation.x)
+						append ryArr (at time j bonsnam2.rotation.y)
+						append rzArr (at time j bonsnam2.rotation.z)
+						append rwArr (at time j bonsnam2.rotation.w)
 						)
-					) 
+					)
 					else (
-					rx=at time i bonsnam2.rotation.x
+					append rxArr (at time j bonsnam2.rotation.x)
+					append ryArr (at time j bonsnam2.rotation.y)
+					append rzArr (at time j bonsnam2.rotation.z)
+					append rwArr (at time j bonsnam2.rotation.w)
 					)
-				format "\t\t\t\t\t%\n" rx to: o
 			)
-			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
-			for i=0 to ar do (
-				if bonsnam2.parent!=undefined then (
-					in coordsys parent (
-						ry=at time i bonsnam2.rotation.y
-						)
-					) 
-					else (
-					ry=at time i bonsnam2.rotation.y
-					)
-				format "\t\t\t\t\t%\n" ry to: o
-			)
-			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
-			for i=0 to ar do (
-				if bonsnam2.parent!=undefined then (
-					in coordsys parent	(
-						rz=at time i bonsnam2.rotation.z
-						)
-					) else (
-					rz=at time i bonsnam2.rotation.z
-					)
-				format "\t\t\t\t\t%\n" rz to: o
-			)
-			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
-			for i=0 to ar do (
-				if bonsnam2.parent!=undefined then (
-					in coordsys parent (
-						rw=at time i bonsnam2.rotation.w
-						)
-					) else (
-					rw=at time i bonsnam2.rotation.w
-					)
-				format "\t\t\t\t\t%\n" rw to: o
-			)
-			format "\t\t\t\t}\n\t\t\t}\n\t\t}\n" to: o
+			fixQuatContinuity rxArr ryArr rzArr rwArr
+			writeChannelData rxArr o
+			writeChannelData ryArr o
+			writeChannelData rzArr o
+			writeChannelData rwArr o
+			format "\t\t\t}\n\t\t}\n" to: o
 			bonii=findItem bonsar bonal
 			if bonii!=0 then (
 			deleteItem bonsar bonii
@@ -572,17 +609,17 @@ on ExpMC pressed do (										--CHAR EXPORT
 			format "\t\t\tFramesData MultiChannel\n\t\t\t{\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
 				rx=at time i bonsnam2.pos.x
-				format "\t\t\t\t\t%\n" rx to: o
+				format "\t\t\t\t\t%\n" (ff rx) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
 				ry=at time i bonsnam2.pos.y
-				format "\t\t\t\t\t%\n" ry to: o
+				format "\t\t\t\t\t%\n" (ff ry) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
 				rz=at time i bonsnam2.pos.z
-				format "\t\t\t\t\t%\n" rz to: o
+				format "\t\t\t\t\t%\n" (ff rz) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t}\n\t\t}\n" to: o
 			format "\t\tModelRotation Float4 0\n\t\t{\n" to: o
@@ -609,11 +646,11 @@ on ExpMC pressed do (										--CHAR EXPORT
 		)
 		else if (TypeCExp.state==3) then (			--FACIAL ANIM
 			format "Version 8 2\n{\n\tFlags FLAG_0 FLAG_6 FLAG_7 FLAG_8\n" to: o
-		format "\tFrames %\n" ar to: o
+		format "\tFrames %\n" (ar+1) to: o
 		format "\tSequenceFrameLimit %\n" ar to: o
 		format "\tDuration %\n" ard to: o
 		format "\t_f10 2771602081\n\t_f28 0\n" to: o
-		format "\tSequences %\n" ar to: o
+		format "\tSequences %\n" (ar+1) to: o
 		format "\tMaterialID -1\n\tAnimation\n\t{\n" to: o
 			RootOn=#()
 		bonsar2=#()
@@ -654,7 +691,7 @@ on ExpMC pressed do (										--CHAR EXPORT
 					else (
 					rx=at time i bonsnam2.pos.x
 					)
-				format "\t\t\t\t\t%\n" rx to: o
+				format "\t\t\t\t\t%\n" (ff rx) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
@@ -666,7 +703,7 @@ on ExpMC pressed do (										--CHAR EXPORT
 					else (
 					ry=at time i bonsnam2.pos.y
 					)
-				format "\t\t\t\t\t%\n" ry to: o
+				format "\t\t\t\t\t%\n" (ff ry) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
@@ -678,7 +715,7 @@ on ExpMC pressed do (										--CHAR EXPORT
 					else (
 					rz=at time i bonsnam2.pos.z
 					)
-				format "\t\t\t\t\t%\n" rz to: o
+				format "\t\t\t\t\t%\n" (ff rz) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t}\n\t\t}\n" to: o
 			)
@@ -699,7 +736,7 @@ on ExpMC pressed do (										--CHAR EXPORT
 					else (
 					rx=at time i bonsnam2.rotation.x
 					)
-				format "\t\t\t\t\t%\n" rx to: o
+				format "\t\t\t\t\t%\n" (ff rx) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
@@ -711,7 +748,7 @@ on ExpMC pressed do (										--CHAR EXPORT
 					else (
 					ry=at time i bonsnam2.rotation.y
 					)
-				format "\t\t\t\t\t%\n" ry to: o
+				format "\t\t\t\t\t%\n" (ff ry) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
@@ -722,7 +759,7 @@ on ExpMC pressed do (										--CHAR EXPORT
 					) else (
 					rz=at time i bonsnam2.rotation.z
 					)
-				format "\t\t\t\t\t%\n" rz to: o
+				format "\t\t\t\t\t%\n" (ff rz) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
@@ -733,7 +770,7 @@ on ExpMC pressed do (										--CHAR EXPORT
 					) else (
 					rw=at time i bonsnam2.rotation.w
 					)
-				format "\t\t\t\t\t%\n" rw to: o
+				format "\t\t\t\t\t%\n" (ff rw) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t}\n\t\t}\n" to: o
 			)
@@ -743,17 +780,17 @@ on ExpMC pressed do (										--CHAR EXPORT
 			format "\t\t\tFramesData MultiChannel\n\t\t\t{\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
 				rx=at time i bonsnam2.pos.x
-				format "\t\t\t\t\t%\n" rx to: o
+				format "\t\t\t\t\t%\n" (ff rx) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
 				ry=at time i bonsnam2.pos.y
-				format "\t\t\t\t\t%\n" ry to: o
+				format "\t\t\t\t\t%\n" (ff ry) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
 				rz=at time i bonsnam2.pos.z
-				format "\t\t\t\t\t%\n" rz to: o
+				format "\t\t\t\t\t%\n" (ff rz) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t}\n" to: o
 			
@@ -1026,12 +1063,12 @@ on ExpCha pressed do (										--OBJ EXPORT
 		if fResult[2] != fname then messageBox ("Original OAD file was locked.\nWrote animation list to a copy instead:\n" + fResult[2] + "\n\nRestart 3ds Max, then rename this file over the original when you can.")
 		if (TypeExp.state==1) then (           --CUTSCENE OBJECTS
 			format "Version 8 2\n{\n\tFlags FLAG_0 FLAG_6 FLAG_7 FLAG_8\n" to: o
-		format "\tFrames %\n" ar to: o
+		format "\tFrames %\n" (ar+1) to: o
 		format "\tSequenceFrameLimit %\n" ar to: o
 		format "\tDuration %\n" ard to: o
 		format "\t_f10 3205147457\n" to: o
 		format "\tExtraFlags FLAG_1 FLAG_2\n" to: o
-		format "\tSequences %\n" ar to: o
+		format "\tSequences %\n" (ar+1) to: o
 		format "\tMaterialID -1\n\tAnimation\n\t{\n" to: o
 		Panims = ParList.items
 		for i=1 to Panims.count do (
@@ -1057,7 +1094,7 @@ on ExpCha pressed do (										--OBJ EXPORT
 					else (
 					rx=at time i bon2.pos.x
 					)
-				format "\t\t\t\t\t%\n" rx to: o
+				format "\t\t\t\t\t%\n" (ff rx) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
@@ -1069,7 +1106,7 @@ on ExpCha pressed do (										--OBJ EXPORT
 					else (
 					ry=at time i bon2.pos.y
 					)
-				format "\t\t\t\t\t%\n" ry to: o
+				format "\t\t\t\t\t%\n" (ff ry) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
@@ -1081,7 +1118,7 @@ on ExpCha pressed do (										--OBJ EXPORT
 					else (
 					rz=at time i bon2.pos.z
 					)
-				format "\t\t\t\t\t%\n" rz to: o
+				format "\t\t\t\t\t%\n" (ff rz) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t}\n\t\t}\n" to: o
 			format "\t\tBoneRotation Float4 %\n\t\t{\n\t\t\tFramesData MultiChannel\n\t\t\t{\n\t\t\t\tchannel\n\t\t\t\t{\n" bonID2 to: o
@@ -1094,7 +1131,7 @@ on ExpCha pressed do (										--OBJ EXPORT
 					else (
 					rx=at time i bon2.rotation.x
 					)
-				format "\t\t\t\t\t%\n" rx to: o
+				format "\t\t\t\t\t%\n" (ff rx) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
@@ -1106,7 +1143,7 @@ on ExpCha pressed do (										--OBJ EXPORT
 					else (
 					ry=at time i bon2.rotation.y
 					)
-				format "\t\t\t\t\t%\n" ry to: o
+				format "\t\t\t\t\t%\n" (ff ry) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
@@ -1117,7 +1154,7 @@ on ExpCha pressed do (										--OBJ EXPORT
 					) else (
 					rz=at time i bon2.rotation.z
 					)
-				format "\t\t\t\t\t%\n" rz to: o
+				format "\t\t\t\t\t%\n" (ff rz) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
@@ -1128,7 +1165,7 @@ on ExpCha pressed do (										--OBJ EXPORT
 					) else (
 					rw=at time i bon2.rotation.w
 					)
-				format "\t\t\t\t\t%\n" rw to: o
+				format "\t\t\t\t\t%\n" (ff rw) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t}\n\t\t}\n" to: o
 			)
@@ -1137,12 +1174,12 @@ on ExpCha pressed do (										--OBJ EXPORT
 		)	
 		else if (TypeExp.state==2) then (           --IN-GAME OBJECTS
 			format "Version 8 2\n{\n\tFlags FLAG_0 FLAG_6 FLAG_7 FLAG_8\n" to: o
-		format "\tFrames %\n" ar to: o
+		format "\tFrames %\n" (ar+1) to: o
 		format "\tSequenceFrameLimit %\n" ar to: o
 		format "\tDuration %\n" ard to: o
 		format "\t_f10 1520661046\n" to: o
 		format "\tExtraFlags FLAG_1 FLAG_2\n" to: o
-		format "\tSequences %\n" ar to: o
+		format "\tSequences %\n" (ar+1) to: o
 		format "\tMaterialID -1\n\tAnimation\n\t{\n" to: o
 		Panims = ParList.items
 		for i=1 to Panims.count do (
@@ -1168,7 +1205,7 @@ on ExpCha pressed do (										--OBJ EXPORT
 					else (
 					rx=at time i bon2.pos.x
 					)
-				format "\t\t\t\t\t%\n" rx to: o
+				format "\t\t\t\t\t%\n" (ff rx) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
@@ -1180,7 +1217,7 @@ on ExpCha pressed do (										--OBJ EXPORT
 					else (
 					ry=at time i bon2.pos.y
 					)
-				format "\t\t\t\t\t%\n" ry to: o
+				format "\t\t\t\t\t%\n" (ff ry) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
@@ -1192,7 +1229,7 @@ on ExpCha pressed do (										--OBJ EXPORT
 					else (
 					rz=at time i bon2.pos.z
 					)
-				format "\t\t\t\t\t%\n" rz to: o
+				format "\t\t\t\t\t%\n" (ff rz) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t}\n\t\t}\n" to: o
 			format "\t\tBoneRotation Float4 %\n\t\t{\n\t\t\tFramesData MultiChannel\n\t\t\t{\n\t\t\t\tchannel\n\t\t\t\t{\n" bonID2 to: o
@@ -1205,7 +1242,7 @@ on ExpCha pressed do (										--OBJ EXPORT
 					else (
 					rx=at time i bon2.rotation.x
 					)
-				format "\t\t\t\t\t%\n" rx to: o
+				format "\t\t\t\t\t%\n" (ff rx) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
@@ -1217,7 +1254,7 @@ on ExpCha pressed do (										--OBJ EXPORT
 					else (
 					ry=at time i bon2.rotation.y
 					)
-				format "\t\t\t\t\t%\n" ry to: o
+				format "\t\t\t\t\t%\n" (ff ry) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
@@ -1228,7 +1265,7 @@ on ExpCha pressed do (										--OBJ EXPORT
 					) else (
 					rz=at time i bon2.rotation.z
 					)
-				format "\t\t\t\t\t%\n" rz to: o
+				format "\t\t\t\t\t%\n" (ff rz) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 			for i=0 to ar do (
@@ -1239,7 +1276,7 @@ on ExpCha pressed do (										--OBJ EXPORT
 					) else (
 					rw=at time i bon2.rotation.w
 					)
-				format "\t\t\t\t\t%\n" rw to: o
+				format "\t\t\t\t\t%\n" (ff rw) to: o
 			)
 			format "\t\t\t\t}\n\t\t\t}\n\t\t}\n" to: o
 			)
@@ -1348,11 +1385,11 @@ rollout UVE "UV Animation"
 		f = fResult[1]
 		if fResult[2] != fname then messageBox ("Original OAD file was locked.\nWrote animation list to a copy instead:\n" + fResult[2] + "\n\nRestart 3ds Max, then rename this file over the original when you can.")
 		format "Version 8 2\n{\n\tFlags FLAG_0 FLAG_6 FLAG_8\n" to: o
-		format "\tFrames %\n" ar to: o
+		format "\tFrames %\n" (ar+1) to: o
 		format "\tSequenceFrameLimit %\n" ar to: o
 		format "\tDuration %\n" ard to: o
 		format "\t_f10 285410817\n\t_f28 0\n" to: o
-		format "\tSequences %\n" ar to: o
+		format "\tSequences %\n" (ar+1) to: o
 		format "\tMaterialID %\n\tAnimation\n\t{\n" iduv to: o
 		format "\t\tUV0 Float3 0\n\t\t{\n\t\t\tFramesData MultiChannel\n\t\t\t{\n\t\t\t\tchannel Static\n\t\t\t\t{\n\t\t\t\t\t1.00000000\n\t\t\t\t}\n\t\t\t\tchannel Static\n\t\t\t\t{\n\t\t\t\t\t0.00000000\n\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 		local uvli=#()
@@ -1452,50 +1489,50 @@ rollout CamE "Camera Animation"
 		f = fResult[1]
 		if fResult[2] != fname then messageBox ("Original OAD file was locked.\nWrote animation list to a copy instead:\n" + fResult[2] + "\n\nRestart 3ds Max, then rename this file over the original when you can.")
 		format "Version 8 2\n{\n\tFlags FLAG_0 FLAG_7 FLAG_8\n" to: o
-		format "\tFrames %\n" ar to: o
+		format "\tFrames %\n" (ar+1) to: o
 		format "\tSequenceFrameLimit %\n" ar to: o
 		format "\tDuration %\n" ard to: o
 		format "\t_f10 1999715593\n\t_f28 0\n" to: o
-		format "\tSequences %\n" ar to: o
+		format "\tSequences %\n" (ar+1) to: o
 		format "\tMaterialID -1\n\tAnimation\n\t{\n\t\tCameraPosition Float3 0\n\t\t{\n\t\t\tFramesData MultiChannel\n\t\t\t{\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 		pov = eulertoquat (eulerAngles 90 0 0)
 		for i=0 to ar do (
 			px=at time i cam.pos.x
-			format "\t\t\t\t\t%\n" px to: o
+			format "\t\t\t\t\t%\n" (ff px) to: o
 		)
 		format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 		for i=0 to ar do (
 			py=at time i cam.pos.y
-			format "\t\t\t\t\t%\n" py to: o
+			format "\t\t\t\t\t%\n" (ff py) to: o
 		)
 		format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 		for i=0 to ar do (
 			pz=at time i cam.pos.z
-			format "\t\t\t\t\t%\n" pz to: o
+			format "\t\t\t\t\t%\n" (ff pz) to: o
 		)
 		format "\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\tCameraRotation Float4 0\n\t\t{\n\t\t\tFramesData MultiChannel\n\t\t\t{\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 		for i=0 to ar do (
 					full1 = ((at time i cam.rotation) * pov)
 					rx=full1.x
-			format "\t\t\t\t\t%\n" rx to: o
+			format "\t\t\t\t\t%\n" (ff rx) to: o
 		)
 		format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 		for i=0 to ar do (
 					full2 = ((at time i cam.rotation) * pov)
 					ry=full2.y
-			format "\t\t\t\t\t%\n" ry to: o
+			format "\t\t\t\t\t%\n" (ff ry) to: o
 		)
 		format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 		for i=0 to ar do (
 					full3 = ((at time i cam.rotation) * pov)
 					rz=full3.z
-			format "\t\t\t\t\t%\n" rz to: o
+			format "\t\t\t\t\t%\n" (ff rz) to: o
 		)
 		format "\t\t\t\t}\n\t\t\t\tchannel\n\t\t\t\t{\n" to: o
 		for i=0 to ar do (
 					full4 = ((at time i cam.rotation) * pov)
 					rw=full4.w
-			format "\t\t\t\t\t%\n" rw to: o
+			format "\t\t\t\t\t%\n" (ff rw) to: o
 		)
 		format "\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\tCameraFOV Float 0\n\t\t{\n\t\t\tFramesData SingleChannel\n\t\t\t{\n" to: o
 		for i=0 to ar do (
